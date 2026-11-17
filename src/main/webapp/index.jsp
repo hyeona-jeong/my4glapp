@@ -42,8 +42,8 @@
 <body>
     <div class="card">
         <h1>4glapp Web Application</h1>
-        <p>JSP 페이지가 정상적으로 배포되었습니다.</p>
-        <p><strong>서버 현재 시간:</strong> <%= now %></p>
+        <p>JSP IS ACTIVE.</p>
+        <p><strong>Server Present Time:</strong> <%= now %></p>
         <div class="badge">Deploy Success</div>
     </div>
 </body>
