@@ -1,50 +1,81 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.Date, java.text.SimpleDateFormat" %>
-<%
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    String now = sdf.format(new Date());
-%>
+<%@ page import="java.sql.*" %>
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>4glapp 배포 테스트</title>
-    <style>
-        body {
-            font-family: 'Malgun Gothic', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f4f6f9;
-        }
-        .card {
-            background: #ffffff;
-            padding: 40px 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 { color: #2c3e50; margin-bottom: 10px; }
-        p { color: #555; font-size: 16px; }
-        .badge {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 8px 16px;
-            background-color: #2ecc71;
-            color: white;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>게시판 목록</title>
+<style>
+    body { font-family: sans-serif; margin: 40px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    td.title { text-align: left; }
+    .btn { padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+</style>
 </head>
 <body>
-    <div class="card">
-        <h1>4glapp Web Application</h1>
-        <p>JSP IS ACTIVE.</p>
-        <p><strong>Server Present Time:</strong> <%= now %></p>
-        <div class="badge">Deploy Success</div>
-    </div>
+
+    <h2>📋 Rocky 10 게시판</h2>
+    <a href="write.jsp" class="btn">글쓰기</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="10%">번호</th>
+                <th width="50%">제목</th>
+                <th width="15%">작성자</th>
+                <th width="25%">작성일</th>
+            </tr>
+        </thead>
+        <tbody>
+        <%
+            // MariaDB 기준 (MySQL일 경우 mariadb -> mysql 로 변경)
+            String url = "jdbc:mariadb://192.168.111.131:3306/boarddb?useUnicode=true&characterEncoding=utf8mb4";
+            String dbUser = "boarduser";
+            String dbPass = "1234";
+
+            Connection conn = null;
+            PreparedStatement pstmt = null;
+            ResultSet rs = null;
+
+            try {
+                Class.forName("org.mariadb.jdbc.Driver"); // MySQL: com.mysql.cj.jdbc.Driver
+                conn = DriverManager.getConnection(url, dbUser, dbPass);
+
+                String sql = "SELECT id, title, writer, content, reg_date FROM board ORDER BY id DESC";
+                pstmt = conn.prepareStatement(sql);
+                rs = pstmt.executeQuery();
+
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String title = rs.getString("title");
+                    String writer = rs.getString("writer");
+                    String content = rs.getString("content");
+                    String regDate = rs.getString("reg_date");
+        %>
+            <tr>
+                <td><%= id %></td>
+                <td class="title">
+                    <strong><%= title %></strong><br>
+                    <small style="color: #666;"><%= content %></small>
+                </td>
+                <td><%= writer %></td>
+                <td><%= regDate %></td>
+            </tr>
+        <%
+                }
+            } catch (Exception e) {
+                out.println("<tr><td colspan='4'>DB 연결 오류: " + e.getMessage() + "</td></tr>");
+                e.printStackTrace();
+            } finally {
+                if (rs != null) try { rs.close(); } catch (Exception e) {}
+                if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+                if (conn != null) try { conn.close(); } catch (Exception e) {}
+            }
+        %>
+        </tbody>
+    </table>
+
 </body>
 </html>
